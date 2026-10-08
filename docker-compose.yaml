@@ -1,0 +1,21 @@
+﻿services:
+  movie:
+    build: ./movie-service
+    image: movie-service:1.0.0
+    ports: ["8080:8080"]
+    environment:
+      MOVIE_ENVIRONMENT: compose
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health/liveness"]
+      interval: 5s
+      retries: 20
+
+  ticket:
+    build: ./ticket-service
+    image: ticket-service:1.0.0
+    ports: ["8082:8080"]
+    environment:
+      MOVIE_URL: http://movie:8080
+    depends_on:
+      movie:
+        condition: service_healthy

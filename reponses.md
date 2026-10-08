@@ -55,3 +55,14 @@ On utilise l'argument Java ou la variable d'environnement au lancement plutôt q
 
 **Q2.2**
 La liveness est restée `UP` car `ticket-service` tourne correctement. La readiness est passée `DOWN` car le service dépendant (`movie-service`) est injoignable. C'est le comportement attendu : le Pod est en vie, mais ne doit pas recevoir de requêtes utilisateur.
+
+## Partie 3
+
+**Q3.1**
+On copie le `pom.xml` avant `src/` pour profiter du cache Docker. Télécharger les dépendances prend du temps ; si on modifie seulement du code Java dans `src/`, Docker réutilisera la couche cache des dépendances (l'étape `dependency:go-offline`) et ne refera que la compilation, ce qui accélère énormément le build.
+
+**Q3.2**
+Dans un conteneur, `-XX:MaxRAMPercentage=75.0` permet à la JVM de dimensionner son heap en fonction de la limite mémoire du conteneur (ex: les `resources.limits.memory` de K8s). `-Xmx512m` fixerait une limite absolue en dur, ignorant la limite réelle du conteneur.
+
+**Q3.3**
+Kubernetes ne gère pas l'ordre de démarrage entre les services. Si `ticket` démarre avant `movie`, sa liveness sera `UP` mais sa readiness sera `DOWN` jusqu'à ce que `movie` démarre. Les Pods `ticket` seront `0/1 Ready` et ne recevront pas de trafic, ce qui est l'état souhaité.
