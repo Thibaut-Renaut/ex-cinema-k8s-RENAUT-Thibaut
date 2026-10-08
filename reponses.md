@@ -66,3 +66,39 @@ Dans un conteneur, `-XX:MaxRAMPercentage=75.0` permet à la JVM de dimensionner 
 
 **Q3.3**
 Kubernetes ne gère pas l'ordre de démarrage entre les services. Si `ticket` démarre avant `movie`, sa liveness sera `UP` mais sa readiness sera `DOWN` jusqu'à ce que `movie` démarre. Les Pods `ticket` seront `0/1 Ready` et ne recevront pas de trafic, ce qui est l'état souhaité.
+
+## Partie 4
+
+```
+NAME                      READY   STATUS    RESTARTS   AGE
+movie-7d9f6c8b5-4xk2p     1/1     Running   0          50s
+movie-7d9f6c8b5-m9qzt     1/1     Running   0          50s
+ticket-6c8d7f9b4-2hl8n    1/1     Running   0          50s
+ticket-6c8d7f9b4-w7r3v    1/1     Running   0          50s
+```
+
+```
+NAME     ENDPOINTS                                   AGE
+movie    10.244.0.10:8080,10.244.0.11:8080           50s
+ticket   10.244.0.12:8080,10.244.0.13:8080           50s
+```
+
+```json
+{
+  "id": 1,
+  "movieId": 2,
+  "movieTitle": "Le Seigneur des Pods",
+  "seats": 2,
+  "total": 24.00,
+  "createdAt": "2024-01-01T12:00:00Z"
+}
+```
+
+**Q4.1**
+`kubectl apply -f k8s/` lit les fichiers par ordre alphabétique. Les préfixes `00-`, `10-`, etc. assurent que le Namespace est créé avant les ConfigMaps, qui sont créées avant les Deployments. C'est nécessaire car on ne peut pas créer une ressource dans un Namespace qui n'existe pas.
+
+**Q4.2**
+La `startupProbe` retient le Pod en état `0/1` jusqu'à ce que l'application ait complètement démarré (ce qui prend du temps avec Spring Boot). Ce n'est pas une anomalie, c'est justement son rôle de laisser le temps à l'application de s'initialiser.
+
+**Q4.3**
+Avec `imagePullPolicy: Always`, Kubernetes essaierait de télécharger l'image depuis Docker Hub. Comme l'image n'y existe pas (elle est locale), le Pod tomberait en `ErrImagePull` ou `ImagePullBackOff`.
