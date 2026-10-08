@@ -113,3 +113,29 @@ Si on avait mis `Exact`, la requête `GET /api/movies/1` aurait renvoyé une err
 
 **Q5.3**
 On obtient un code `404 Not Found`. C'est souhaitable car l'Ingress ne route que `/api/movies` et `/api/tickets`. L'endpoint `/actuator/health` n'est pas exposé publiquement, ce qui est une bonne pratique de sécurité (ne pas exposer les informations internes).
+
+## Partie 6
+
+**Prédictions Q6.1**
+(a) `READY` sera `0/1` et `RESTARTS` restera à `0`.
+(b) `Endpoints ticket` sera vide (plus aucune IP présente).
+(c) Code `503 Service Unavailable`.
+(d) Liveness de `ticket` restera `UP`.
+
+**Q6.1**
+1. `movie` est coupé.
+2. La `readinessProbe` de `ticket` (qui appelle `movie`) échoue 3 fois de suite (15s).
+3. Kubernetes marque les Pods `ticket` en `NotReady` (`0/1`) et retire leurs IPs du Service `ticket`.
+4. L'Ingress (qui pointe sur le Service `ticket`) ne trouve plus de backend disponible et renvoie une erreur `503 Service Unavailable`.
+`RESTARTS` reste à 0 car la `livenessProbe` est restée `UP` (l'application tourne toujours), donc Kubernetes n'a pas tué le conteneur.
+
+**Q6.2 : Mission dépannage**
+
+| # | Statut observé | Commande de diagnostic | Cause exacte | Correction apportée |
+|---|----------------|------------------------|--------------|---------------------|
+| 1 | `ErrImagePull` / `ImagePullBackOff` | `kubectl describe pod ...` | `imagePullPolicy: Always` force le pull distant alors que l'image est locale. | Remplacé `Always` par `IfNotPresent` |
+| 2 | `CreateContainerConfigError` | `kubectl describe pod ...` | La ConfigMap référencée `ticket-configmap` n'existe pas. | Remplacé par `ticket-config` |
+| 3 | `Running 0/1` en continu | `kubectl describe pod ...` | La readinessProbe écoute sur le port 8081 au lieu de 8080 (le port HTTP). | Remplacé le port `8081` par `8080` (ou `http`) |
+
+**Q6.3**
+Les variables d'environnement (`envFrom`) d'un conteneur sont injectées au démarrage et ne sont jamais rechargées à chaud par Kubernetes. Il a fallu faire un `rollout restart` pour recréer les Pods avec la nouvelle configuration.
