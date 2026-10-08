@@ -139,3 +139,16 @@ On obtient un code `404 Not Found`. C'est souhaitable car l'Ingress ne route que
 
 **Q6.3**
 Les variables d'environnement (`envFrom`) d'un conteneur sont injectées au démarrage et ne sont jamais rechargées à chaud par Kubernetes. Il a fallu faire un `rollout restart` pour recréer les Pods avec la nouvelle configuration.
+
+## Partie 7
+
+**Q7.1**
+1. `ticket` fait une requête DNS interne pour `movie`.
+2. Le service CoreDNS de Kubernetes résout ce nom en l'IP ClusterIP du Service `movie`.
+3. kube-proxy intercepte le trafic vers cette IP virtuelle et le redirige aléatoirement vers l'adresse IP de l'un des Pods `movie` listés dans les Endpoints du Service.
+
+**Q7.2**
+Le nombre de réservations varie car la liste des réservations est stockée en mémoire vive (RAM) dans chaque Pod `ticket`, de manière isolée. L'Ingress distribue les requêtes entre les différents Pods, donc on interroge tantôt la mémoire d'un Pod, tantôt celle de l'autre. La solution architecturale est de sortir l'état (state) des Pods pour utiliser une base de données partagée externe (ex: PostgreSQL ou Redis).
+
+**Q7.3**
+Le Deployment a immédiatement détecté que le nombre de réplicas actuels (1) ne correspondait pas au nombre désiré (2), et a recréé un nouveau Pod automatiquement. Si on avait déployé un `Pod` nu, la suppression aurait été définitive et l'application aurait tourné sur un seul Pod restant.
