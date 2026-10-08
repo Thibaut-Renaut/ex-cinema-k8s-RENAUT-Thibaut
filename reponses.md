@@ -102,3 +102,14 @@ La `startupProbe` retient le Pod en état `0/1` jusqu'à ce que l'application ai
 
 **Q4.3**
 Avec `imagePullPolicy: Always`, Kubernetes essaierait de télécharger l'image depuis Docker Hub. Comme l'image n'y existe pas (elle est locale), le Pod tomberait en `ErrImagePull` ou `ImagePullBackOff`.
+
+## Partie 5
+
+**Q5.1**
+Deux Pods `movie` différents ont répondu. C'est le Service `movie` (de type ClusterIP) qui agit comme un load-balancer interne et répartit la charge (round-robin) entre ses endpoints.
+
+**Q5.2**
+Si on avait mis `Exact`, la requête `GET /api/movies/1` aurait renvoyé une erreur 404 (non routée par l'Ingress), car seule l'URL exacte `/api/movies` (sans rien derrière) aurait correspondu.
+
+**Q5.3**
+On obtient un code `404 Not Found`. C'est souhaitable car l'Ingress ne route que `/api/movies` et `/api/tickets`. L'endpoint `/actuator/health` n'est pas exposé publiquement, ce qui est une bonne pratique de sécurité (ne pas exposer les informations internes).
