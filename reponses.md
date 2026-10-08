@@ -22,3 +22,36 @@ La dépendance doit être dans la readiness car si le service des films est injo
 | `/actuator/health/readiness` | `readinessProbe` | Kubernetes retire l'IP du Pod des Endpoints du Service, coupant le trafic entrant. |
 
 La propriété `server.shutdown: graceful` permet au serveur d'attendre de terminer de répondre aux requêtes HTTP en cours avant de s'arrêter définitivement lors de la destruction d'un Pod.
+
+## Partie 2
+
+```json
+{
+  "id": 1,
+  "movieId": 2,
+  "movieTitle": "Le Seigneur des Pods",
+  "seats": 3,
+  "total": 36.00,
+  "createdAt": "2024-01-01T12:00:00Z"
+}
+```
+
+```json
+{
+  "status": "UP",
+  "components": {
+    "movie": {
+      "status": "UP"
+    },
+    "readinessState": {
+      "status": "UP"
+    }
+  }
+}
+```
+
+**Q2.1**
+On utilise l'argument Java ou la variable d'environnement au lancement plutôt que de modifier `application.yaml` afin de ne pas impacter la configuration par défaut (qui sera utile sur le cluster). Spring Boot le permet via son mécanisme de "Relaxed Binding", où les variables d'environnement surchargent le fichier YAML.
+
+**Q2.2**
+La liveness est restée `UP` car `ticket-service` tourne correctement. La readiness est passée `DOWN` car le service dépendant (`movie-service`) est injoignable. C'est le comportement attendu : le Pod est en vie, mais ne doit pas recevoir de requêtes utilisateur.
