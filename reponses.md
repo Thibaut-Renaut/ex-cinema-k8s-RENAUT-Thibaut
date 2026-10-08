@@ -1,5 +1,7 @@
 # Examen CinéK8s — RENAUT Thibaut
 
+> **Note au correcteur :** Un script d'automatisation des tests est fourni. Vous pouvez le lancer via la commande `bash test.sh` à la racine du projet. Ce script compile le projet, construit les images Docker et déploie l'ensemble sur Kubernetes (si Minikube/Docker sont disponibles).
+
 ## Partie 1
 
 **Q1.1**
