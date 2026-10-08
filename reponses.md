@@ -152,3 +152,11 @@ Le nombre de réservations varie car la liste des réservations est stockée en 
 
 **Q7.3**
 Le Deployment a immédiatement détecté que le nombre de réplicas actuels (1) ne correspondait pas au nombre désiré (2), et a recréé un nouveau Pod automatiquement. Si on avait déployé un `Pod` nu, la suppression aurait été définitive et l'application aurait tourné sur un seul Pod restant.
+
+## Bonus
+
+**QB2**
+Le service n'a connu aucune coupure (aucun `502` ou `503`), toutes les requêtes renvoient `200`.
+- `strategy.maxUnavailable: 0` force Kubernetes à ne tuer un vieux Pod que lorsqu'un nouveau est prêt, garantissant 2 Pods minimum en vie.
+- La `readinessProbe` (plus `startupProbe`) s'assure que le trafic n'est basculé sur un nouveau Pod que lorsque Spring Boot a fini de s'initialiser.
+- `shutdown: graceful` dans Spring Boot fait que les vieux Pods finissent de traiter leurs requêtes en cours avant de mourir proprement, évitant les erreurs de connexion coupée.
